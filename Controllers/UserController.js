@@ -14,12 +14,65 @@ class UserController{
 
             event.preventDefault();
 
+            let btn = this.formEl.querySelector("[type=submit]");
+
+            btn.disabled = true;
+
             let values = this.getValues();
 
-            values.photo = "";
-            this.addLine(this.getValues());
-        
+            this.getPhoto().then(
+                (content)=>{
+
+                values.photo = content;
+                this.addLine(values);
+
+                this.formEl.reset(); 
+                btn.disabled = false;
+
+
+            }, (e) => {
+
+
+            });
         });
+        
+    }
+
+
+    getPhoto(){
+
+        return new Promise((resolve, reject)=>{
+
+            let fileReader = new FileReader();
+
+            let element = [...this.formEl.elements].filter(item =>{
+    
+                if(item.name === 'photo'){
+    
+                    return item;
+                }
+            });
+    
+            let file = element[0].files[0];
+    
+            fileReader.onload = () =>{
+    
+                resolve(fileReader.result);
+            };
+    
+            fileReader.onerror= (e) =>{
+
+                reject(0);
+            }
+            if(file){
+                
+                fileReader.readAsDataURL(file);
+            }else{
+
+                resolve();
+            }
+            });
+
         
     }
 
@@ -29,12 +82,15 @@ class UserController{
 
         [...this.formEl.elements].forEach(function(field, index){
 
-            if(field.name == "gender"){
+            if(field.name === "gender"){
     
                 if(field.checked){
         
                     user[field.name] = field.value;
                 }
+            }else if(field.name === 'admin'){
+
+                user[field.name] = field.checked;
             }else{
         
                 user[field.name] = field.value;
@@ -54,22 +110,20 @@ class UserController{
 
     addLine(dataUser){
 
-        this.tableEl.innerHTML = 
-        
-        `<tr>
-        <td><img src="${dataUser.photo}" alt="User Image" class="img-circle img-sm"></td>
+        let tr = document.createElement('tr');
+
+        tr.innerHTML = 
+        `<td><img src="${dataUser.photo}" alt="User Image" class="img-circle img-sm"></td>
         <td>${dataUser.name}</td>
         <td>${dataUser.email}</td>
-        <td>${dataUser.admin}</td>
+        <td>${(dataUser.admin)? 'Sim' : 'Não'}</td>
         <td>${dataUser.birth}</td>
-        <td>fulano@hcode.com.br</td>
-        <td>Sim</td>
-        <td>02/04/2018</td>
         <td>
           <button type="button" class="btn btn-primary btn-xs btn-flat">Editar</button>
           <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
-        </td>
-      </tr>`;
+        </td>`;
+
+        this.tableEl.appendChild(tr);
     }
 
 }
